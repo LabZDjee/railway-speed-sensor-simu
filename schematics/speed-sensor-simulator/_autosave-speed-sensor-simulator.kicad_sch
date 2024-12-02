@@ -6,8 +6,8 @@
 	(paper "A4")
 	(title_block
 		(title "Speed Sensor Simulator")
-		(date "2024-05-20")
-		(rev "1")
+		(date "2024-12-02")
+		(rev "2")
 		(comment 1 "Design by Gérard Gauthier")
 	)
 	(lib_symbols
