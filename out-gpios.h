@@ -4,10 +4,10 @@
 #include "pico/stdlib.h"
 
 // outputs GPIO numbers for sensor 1, channels A and B and sensor 2, channels A and B 
-#define FIRST_OUT_PULSE  0
-#define SECOND_OUT_PULSE 1
-#define THIRD_OUT_PULSE  3
-#define FOURTH_OUT_PULSE 4
+#define FIRST_OUT_PULSE  1
+#define SECOND_OUT_PULSE 0
+#define THIRD_OUT_PULSE  4
+#define FOURTH_OUT_PULSE 3
 
 // whether signal should be reversed for sensors 1 and 2
 extern bool reverse1;

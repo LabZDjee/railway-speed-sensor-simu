@@ -11,6 +11,7 @@ typedef enum {
     e_help,
     e_extended_help,
     e_execute_list,
+    e_loop_list,
     e_new_value,
     e_new_record,
     e_init_list,

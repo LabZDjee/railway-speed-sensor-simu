@@ -274,7 +274,7 @@ static bool timer_controlled_sequence_step(bool resync) {
 int main() {
     static repeating_timer_t timer;
     static char str[80], buf1[16], buf2[16];
-    int i;
+    int i, looping;
     float f;
   
     gpio_init(LED_PIN);
@@ -388,54 +388,59 @@ int main() {
                 state_machine = es_default; 
                 break;
             case e_execute_list:
+            case e_loop_list:
                 state_machine = es_default;
-                for(i=0; i<sequence_index; i++) {
-                    next_values = sequence_array[i];
-                    printf("Step %d", i+1);
-                    if(next_values.delay) {
-                        printf(" %hd\"", next_values.delay);
-                    }
-                    if(value_is_speed()) {
-                       printf(" %s > %s km/h",
-                              _unsafe_format_float(current_values.firstValue, buf1),
-                              _unsafe_format_float(next_values.firstValue, buf2));
-                       if(next_values.delay) {
-                            f = (next_values.firstValue - current_values.firstValue) / (3.6 * (float)next_values.delay);
-                            printf(" %s m/s2", _unsafe_format_float(f, buf1));
-                       }
-                    } else {
-                       printf(" %s > %s Hz",
-                              _unsafe_format_float(current_values.firstValue, buf1),
-                              _unsafe_format_float(next_values.firstValue, buf2));
-                    }
-                    if(!are_floats_equal_ulp(current_values.secondValue, current_values.firstValue) ||
-                       !are_floats_equal_ulp(next_values.secondValue, next_values.firstValue)) {
+                looping = (r == e_loop_list);
+                do {
+                    for(i=0; i<sequence_index; i++) {
+                        next_values = sequence_array[i];
+                        printf("Step %d", i+1);
+                        if(next_values.delay) {
+                            printf(" %hd\"", next_values.delay);
+                        }
                         if(value_is_speed()) {
-                            printf(" : %s > %s km/h",
-                                _unsafe_format_float(current_values.secondValue, buf1),
-                                _unsafe_format_float(next_values.secondValue, buf2));
-                            if(next_values.delay) {
-                                f = (next_values.secondValue - current_values.secondValue) / (3.6 * (float)next_values.delay);
+                        printf(" %s > %s km/h",
+                                _unsafe_format_float(current_values.firstValue, buf1),
+                                _unsafe_format_float(next_values.firstValue, buf2));
+                        if(next_values.delay) {
+                                f = (next_values.firstValue - current_values.firstValue) / (3.6 * (float)next_values.delay);
                                 printf(" %s m/s2", _unsafe_format_float(f, buf1));
-                            }
+                        }
                         } else {
-                            printf(" : %s > %s Hz",
-                                _unsafe_format_float(current_values.secondValue, buf1),
-                                _unsafe_format_float(next_values.secondValue, buf2));
+                        printf(" %s > %s Hz",
+                                _unsafe_format_float(current_values.firstValue, buf1),
+                                _unsafe_format_float(next_values.firstValue, buf2));
+                        }
+                        if(!are_floats_equal_ulp(current_values.secondValue, current_values.firstValue) ||
+                        !are_floats_equal_ulp(next_values.secondValue, next_values.firstValue)) {
+                            if(value_is_speed()) {
+                                printf(" : %s > %s km/h",
+                                    _unsafe_format_float(current_values.secondValue, buf1),
+                                    _unsafe_format_float(next_values.secondValue, buf2));
+                                if(next_values.delay) {
+                                    f = (next_values.secondValue - current_values.secondValue) / (3.6 * (float)next_values.delay);
+                                    printf(" %s m/s2", _unsafe_format_float(f, buf1));
+                                }
+                            } else {
+                                printf(" : %s > %s Hz",
+                                    _unsafe_format_float(current_values.secondValue, buf1),
+                                    _unsafe_format_float(next_values.secondValue, buf2));
+                            }
+                        }
+                        const char* pCurDesc = get_reverse_description(&current_values),
+                                * pNextDesc = get_reverse_description(&next_values);
+                        printf(" %s", pCurDesc);
+                        if(pCurDesc != pNextDesc) {
+                            printf( " > %s", pNextDesc);
+                        }
+                        printf("\n");
+                        if(!timer_controlled_sequence_step(i == 0)) {
+                            printf(msg_sequence_interrupted);
+                            looping = false;
+                            break;
                         }
                     }
-                    const char* pCurDesc = get_reverse_description(&current_values),
-                              * pNextDesc = get_reverse_description(&next_values);
-                    printf(" %s", pCurDesc);
-                    if(pCurDesc != pNextDesc) {
-                        printf( " > %s", pNextDesc);
-                    }
-                    printf("\n");
-                    if(!timer_controlled_sequence_step(i == 0)) {
-                        printf(msg_sequence_interrupted);
-                        break;
-                    }
-                }
+                } while(looping);
                 break;
             case e_print_list:
                 for(i=0; i<sequence_index; i++) {

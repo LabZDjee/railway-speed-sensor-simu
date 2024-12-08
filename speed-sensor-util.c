@@ -124,7 +124,7 @@ void print_help(bool extended) {
      " {delay}\"[>{value1}[:{value2}][{revDefs}]] new sequence item\n"
      " ( start sequence\n"
      " ) end sequence\n"
-     " ! execute sequence\n"
+     " ![!] execute sequence, infinite loop\n"
      " !? print sequence\n"
      " {n_teeth},{dia_mm}[,{ratio}] define speed to frequency parameters\n"
      " ?[?] help, extended help\n";
@@ -202,6 +202,9 @@ command_e process_input(const char * input) {
  }
  if(are_strings_equal(input, "!")) {
     return e_execute_list;
+ }
+ if(are_strings_equal(input, "!!")) {
+    return e_loop_list;
  }
  if(are_strings_equal(input, "!?")) {
     return e_print_list;
